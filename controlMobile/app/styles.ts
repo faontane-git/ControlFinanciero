@@ -216,5 +216,24 @@ export const styles = StyleSheet.create({
         color: '#6c757d',
         marginTop: 4,
     },
+    pickerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginHorizontal: 20,
+        marginBottom: 20,
+    },
+    pickerWrapper: {
+        flex: 1,
+        marginHorizontal: 5,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        overflow: 'hidden',
+    },
+    picker: {
+        height: 50,
+        width: '100%',
+        backgroundColor: '#fff',
+    },
 
 });

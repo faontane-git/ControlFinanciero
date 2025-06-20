@@ -1,33 +1,16 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
-import { VictoryPie, VictoryBar, VictoryChart } from 'victory';
-import { Svg } from 'react-native-svg';
 import { DatoGraficoBarras, DatoGraficoTorta, Movimiento } from './types';
+import { Picker } from '@react-native-picker/picker';
 import { styles } from './styles';
+
+import { db } from '../firebaseConfig';
+import { collection, getDocs } from 'firebase/firestore';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [movimientos, setMovimientos] = useState<Movimiento[]>([
-    {
-      id: '1',
-      tipo: 'Ingreso',
-      monto: 1000,
-      descripcion: 'Sueldo',
-      fecha: new Date(2023, 5, 15), // Mes 5 = junio (0-indexed)
-      categoria: 'Trabajo'
-    },
-    {
-      id: '2',
-      tipo: 'Gasto',
-      monto: 200,
-      descripcion: 'Supermercado',
-      fecha: new Date(2023, 5, 10),
-      categoria: 'Comida'
-    },
-    // ... otros movimientos de ejemplo
-  ]);
-
+  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [mesSeleccionado, setMesSeleccionado] = useState<number>(new Date().getMonth());
   const [anoSeleccionado, setAnoSeleccionado] = useState<number>(new Date().getFullYear());
   const [resumen, setResumen] = useState({
@@ -36,14 +19,29 @@ export default function HomeScreen() {
     balance: 0
   });
 
-  // Obtener movimientos del mes seleccionado
-  const movimientosDelMes = movimientos.filter(mov => {
-    const fechaMov = new Date(mov.fecha!);
-    return fechaMov.getMonth() === mesSeleccionado &&
-      fechaMov.getFullYear() === anoSeleccionado;
-  });
+  const cargarMovimientos = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'movimientos'));
+      const datos: Movimiento[] = [];
 
-  // Función para calcular resumen
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        datos.push({
+          id: doc.id,
+          tipo: data.tipo,
+          monto: data.monto,
+          descripcion: data.descripcion,
+          fecha: new Date(data.fecha.seconds * 1000),
+          categoria: data.categoria
+        });
+      });
+
+      setMovimientos(datos);
+    } catch (error) {
+      console.error('Error al cargar movimientos:', error);
+    }
+  };
+
   const calcularResumen = useCallback((movs: Movimiento[]) => {
     const totalIngresos = movs
       .filter((m) => m.tipo === 'Ingreso')
@@ -60,39 +58,58 @@ export default function HomeScreen() {
     };
   }, []);
 
-  // Actualizar resumen cuando cambian los movimientos o el mes seleccionado
   useEffect(() => {
-    setResumen(calcularResumen(movimientosDelMes));
-  }, [movimientosDelMes, calcularResumen]);
+    cargarMovimientos();
+  }, []);
 
-  // Nombres de los meses
+  useEffect(() => {
+    const movimientosDelMes = movimientos.filter(mov => {
+      const fechaMov = new Date(mov.fecha!);
+      return (
+        fechaMov.getMonth() === mesSeleccionado &&
+        fechaMov.getFullYear() === anoSeleccionado
+      );
+    });
+
+    setResumen(calcularResumen(movimientosDelMes));
+  }, [movimientos, mesSeleccionado, anoSeleccionado, calcularResumen]);
+
   const meses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  // Cambiar mes
-  const cambiarMes = (incremento: number) => {
-    let nuevoMes = mesSeleccionado + incremento;
-    let nuevoAno = anoSeleccionado;
-
-    if (nuevoMes < 0) {
-      nuevoMes = 11;
-      nuevoAno--;
-    } else if (nuevoMes > 11) {
-      nuevoMes = 0;
-      nuevoAno++;
+  const generarAnos = () => {
+    const anos = [];
+    const anoActual = new Date().getFullYear();
+    for (let i = 2020; i <= anoActual + 1; i++) {
+      anos.push(i);
     }
-
-    setMesSeleccionado(nuevoMes);
-    setAnoSeleccionado(nuevoAno);
+    return anos;
   };
 
-  // Datos para el gráfico de torta (categorías de gastos)
+  const anosDisponibles = generarAnos();
+
+  const handleMesChange = (mesIndex: number) => {
+    setMesSeleccionado(mesIndex);
+  };
+
+  const handleAnoChange = (ano: number) => {
+    setAnoSeleccionado(ano);
+  };
+
+  const movimientosFiltrados = movimientos.filter(mov => {
+    const fechaMov = new Date(mov.fecha!);
+    return (
+      fechaMov.getMonth() === mesSeleccionado &&
+      fechaMov.getFullYear() === anoSeleccionado
+    );
+  });
+
   const datosGraficoTorta = () => {
     const gastosPorCategoria: Record<string, number> = {};
 
-    movimientosDelMes
+    movimientosFiltrados
       .filter(m => m.tipo === 'Gasto')
       .forEach(mov => {
         gastosPorCategoria[mov.categoria || 'Otros'] =
@@ -105,18 +122,15 @@ export default function HomeScreen() {
     }));
   };
 
-  // Datos para el gráfico de barras (ingresos vs gastos)
   const datosGraficoBarras = [
     { x: 'Ingresos', y: resumen.ingresos },
     { x: 'Gastos', y: resumen.gastos }
   ];
 
-  // Función para formatear moneda
   const formatCurrency = (value: number) => {
     return `$${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
   };
 
-  // Renderizar item de la lista
   const renderItem = ({ item }: { item: Movimiento }) => (
     <TouchableOpacity
       style={[
@@ -144,25 +158,33 @@ export default function HomeScreen() {
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Resumen Financiero</Text>
 
-      {/* Selector de mes */}
-      <View style={styles.mesSelector}>
-        <TouchableOpacity
-          style={styles.mesButton}
-          onPress={() => cambiarMes(-1)}
-        >
-          <Text style={styles.mesButtonText}>‹</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.mesText}>
-          {meses[mesSeleccionado]} {anoSeleccionado}
-        </Text>
-
-        <TouchableOpacity
-          style={styles.mesButton}
-          onPress={() => cambiarMes(1)}
-        >
-          <Text style={styles.mesButtonText}>›</Text>
-        </TouchableOpacity>
+      {/* Selector de mes y año */}
+      <View style={styles.pickerContainer}>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={mesSeleccionado}
+            onValueChange={(itemValue) => handleMesChange(itemValue)}
+            style={styles.picker}
+            dropdownIconColor="#333"
+          >
+            {meses.map((mes, index) => (
+              <Picker.Item key={index} label={mes} value={index} />
+            ))}
+          </Picker>
+        </View>
+        
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={anoSeleccionado}
+            onValueChange={(itemValue) => handleAnoChange(itemValue)}
+            style={styles.picker}
+            dropdownIconColor="#333"
+          >
+            {anosDisponibles.map((ano) => (
+              <Picker.Item key={ano} label={ano.toString()} value={ano} />
+            ))}
+          </Picker>
+        </View>
       </View>
 
       {/* Tarjeta de resumen */}
@@ -186,87 +208,6 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Gráfico de barras (Ingresos vs Gastos) */}
-      <Text style={styles.subtitle}>Comparación Ingresos/Gastos</Text>
-      <View style={styles.graficoContainer}>
-        <Svg width="100%" height={250}>
-          <VictoryChart
-            domainPadding={{ x: 30 }}
-            width={350}
-            height={250}
-            standalone={false}
-          >
-            <VictoryBar
-              data={datosGraficoBarras}
-              x="x"
-              y="y"
-              style={{
-                data: {
-                  fill: ({ datum }) => datum.x === 'Ingresos' ? '#28a745' : '#dc3545',
-                  width: 30
-                }
-              }}
-              labels={({ datum }) => formatCurrency(datum.y)}
-            />
-          </VictoryChart>
-        </Svg>
-
-        <Svg width="100%" height={300}>
-          <VictoryPie
-            data={datosGraficoTorta()}
-            colorScale={[
-              '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0',
-              '#9966ff', '#ff9f40', '#8ac24a', '#607d8b'
-            ]}
-            width={350}
-            height={300}
-            padAngle={2}
-            innerRadius={50}
-            labelRadius={80}
-            style={{
-              labels: {
-                fill: 'white',
-                fontSize: 12,
-                fontWeight: 'bold'
-              }
-            }}
-            standalone={false}
-            labels={({ datum }: { datum: DatoGraficoTorta }) => `${datum.x}: ${formatCurrency(datum.y)}`}
-          />
-        </Svg>
-      </View>
-
-      {/* Gráfico de torta (Distribución de gastos) */}
-      {resumen.gastos > 0 && (
-        <>
-          <Text style={styles.subtitle}>Distribución de Gastos</Text>
-          <View style={styles.graficoContainer}>
-            <Svg width="100%" height={300}>
-              <VictoryPie
-                data={datosGraficoTorta()}
-                colorScale={[
-                  '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0',
-                  '#9966ff', '#ff9f40', '#8ac24a', '#607d8b'
-                ]}
-                width={350}
-                height={300}
-                padAngle={2}
-                innerRadius={50}
-                labelRadius={80}
-                style={{
-                  labels: {
-                    fill: 'white',
-                    fontSize: 12,
-                    fontWeight: 'bold'
-                  }
-                }}
-                standalone={false}
-              />
-            </Svg>
-          </View>
-        </>
-      )}
-
       {/* Botones de acción */}
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
@@ -286,7 +227,7 @@ export default function HomeScreen() {
       {/* Lista de movimientos */}
       <Text style={styles.subtitle}>Movimientos de {meses[mesSeleccionado]}</Text>
       <FlatList
-        data={[...movimientosDelMes].sort((a, b) =>
+        data={[...movimientosFiltrados].sort((a, b) =>
           new Date(b.fecha!).getTime() - new Date(a.fecha!).getTime()
         )}
         scrollEnabled={false}

@@ -1,12 +1,15 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Movimiento } from './types';
 import { styles } from './styles';
 
+import { db } from '../firebaseConfig';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
+
 export default function AgregarGasto() {
   const router = useRouter();
-  const [gasto, setGasto] = useState<Omit<Movimiento, 'id' | 'tipo'>>({ 
+  const [gasto, setGasto] = useState<Omit<Movimiento, 'id' | 'tipo'>>({
     monto: 0,
     descripcion: '',
     fecha: new Date(),
@@ -14,28 +17,30 @@ export default function AgregarGasto() {
   });
 
   const categoriasGastos = [
-    'Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 
+    'Comida', 'Transporte', 'Vivienda', 'Entretenimiento',
     'Salud', 'Educación', 'Ropa', 'Otros'
   ];
 
-  const handleAgregarGasto = () => {
-    if (!gasto.descripcion || gasto.monto <= 0) {
+  const handleAgregarGasto = async () => {
+    if (!gasto.descripcion || gasto.monto <= 0 || !gasto.categoria) {
       Alert.alert('Error', 'Por favor completa todos los campos correctamente');
       return;
     }
 
-    // Aquí deberías guardar el gasto en tu estado global o base de datos
-    const nuevoGasto: Movimiento = {
-      ...gasto,
-      id: Math.random().toString(36).substring(7),
-      tipo: 'Gasto',
-      fecha: gasto.fecha || new Date()
-    };
+    try {
+      await addDoc(collection(db, 'movimientos'), {
+        ...gasto,
+        tipo: 'Gasto',
+        fecha: Timestamp.fromDate(gasto.fecha || new Date())
+      });
 
-    // Guardar el gasto (esto es temporal, luego implementarás persistencia)
-    Alert.alert('Éxito', 'Gasto agregado correctamente', [
-      { text: 'OK', onPress: () => router.back() }
-    ]);
+      Alert.alert('Éxito', 'Gasto agregado correctamente', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
+    } catch (error) {
+      console.error('Error al guardar gasto:', error);
+      Alert.alert('Error', 'Hubo un problema al guardar el gasto');
+    }
   };
 
   return (
@@ -48,7 +53,7 @@ export default function AgregarGasto() {
           style={styles.input}
           placeholder="Ej. Supermercado, Taxi, etc."
           value={gasto.descripcion}
-          onChangeText={(text) => setGasto({...gasto, descripcion: text})}
+          onChangeText={(text) => setGasto({ ...gasto, descripcion: text })}
         />
       </View>
 
@@ -61,7 +66,7 @@ export default function AgregarGasto() {
           value={gasto.monto.toString()}
           onChangeText={(text) => {
             const numericValue = parseFloat(text) || 0;
-            setGasto({...gasto, monto: numericValue});
+            setGasto({ ...gasto, monto: numericValue });
           }}
         />
       </View>
@@ -76,11 +81,12 @@ export default function AgregarGasto() {
                 styles.categoriaPill,
                 gasto.categoria === cat && styles.categoriaPillSelected
               ]}
-              onPress={() => setGasto({...gasto, categoria: cat})}
+              onPress={() => setGasto({ ...gasto, categoria: cat })}
             >
-              <Text style={gasto.categoria === cat 
-                ? styles.categoriaPillTextSelected 
-                : styles.categoriaPillText
+              <Text style={
+                gasto.categoria === cat
+                  ? styles.categoriaPillTextSelected
+                  : styles.categoriaPillText
               }>
                 {cat}
               </Text>
@@ -89,7 +95,7 @@ export default function AgregarGasto() {
         </View>
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.button, styles.gastoButton]}
         onPress={handleAgregarGasto}
       >

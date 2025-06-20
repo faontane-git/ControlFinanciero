@@ -2,14 +2,15 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'reac
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Movimiento } from './types';
-import { useFinanzas } from './FinanzasContext';
 import { styles } from './styles';
+
+import { db } from '../firebaseConfig';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 export default function AgregarIngreso() {
   const router = useRouter();
-  const { agregarMovimiento } = useFinanzas();
-  
-  const [ingreso, setIngreso] = useState<Omit<Movimiento, 'id' | 'tipo'>>({ 
+
+  const [ingreso, setIngreso] = useState<Omit<Movimiento, 'id' | 'tipo'>>({
     monto: 0,
     descripcion: '',
     fecha: new Date(),
@@ -21,23 +22,26 @@ export default function AgregarIngreso() {
     'Venta', 'Reembolso', 'Otros'
   ];
 
-  const handleAgregarIngreso = () => {
-    if (!ingreso.descripcion || ingreso.monto <= 0) {
+  const handleAgregarIngreso = async () => {
+    if (!ingreso.descripcion || ingreso.monto <= 0 || !ingreso.categoria) {
       Alert.alert('Error', 'Por favor completa todos los campos correctamente');
       return;
     }
 
-    const nuevoIngreso: Movimiento = {
-      ...ingreso,
-      id: Math.random().toString(36).substring(7),
-      tipo: 'Ingreso',
-      fecha: ingreso.fecha || new Date()
-    };
+    try {
+      await addDoc(collection(db, 'movimientos'), {
+        ...ingreso,
+        tipo: 'Ingreso',
+        fecha: Timestamp.fromDate(ingreso.fecha || new Date())
+      });
 
-    agregarMovimiento(nuevoIngreso);
-    Alert.alert('Éxito', 'Ingreso agregado correctamente', [
-      { text: 'OK', onPress: () => router.back() }
-    ]);
+      Alert.alert('Éxito', 'Ingreso agregado correctamente', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
+    } catch (error) {
+      console.error('Error al guardar ingreso:', error);
+      Alert.alert('Error', 'Hubo un problema al guardar el ingreso');
+    }
   };
 
   return (
@@ -50,7 +54,7 @@ export default function AgregarIngreso() {
           style={styles.input}
           placeholder="Ej. Pago nómina, Trabajo freelance, etc."
           value={ingreso.descripcion}
-          onChangeText={(text) => setIngreso({...ingreso, descripcion: text})}
+          onChangeText={(text) => setIngreso({ ...ingreso, descripcion: text })}
         />
       </View>
 
@@ -63,7 +67,7 @@ export default function AgregarIngreso() {
           value={ingreso.monto > 0 ? ingreso.monto.toString() : ''}
           onChangeText={(text) => {
             const numericValue = parseFloat(text) || 0;
-            setIngreso({...ingreso, monto: numericValue});
+            setIngreso({ ...ingreso, monto: numericValue });
           }}
         />
       </View>
@@ -78,11 +82,12 @@ export default function AgregarIngreso() {
                 styles.categoriaPill,
                 ingreso.categoria === cat && styles.categoriaPillSelected
               ]}
-              onPress={() => setIngreso({...ingreso, categoria: cat})}
+              onPress={() => setIngreso({ ...ingreso, categoria: cat })}
             >
-              <Text style={ingreso.categoria === cat 
-                ? styles.categoriaPillTextSelected 
-                : styles.categoriaPillText
+              <Text style={
+                ingreso.categoria === cat
+                  ? styles.categoriaPillTextSelected
+                  : styles.categoriaPillText
               }>
                 {cat}
               </Text>
@@ -93,15 +98,15 @@ export default function AgregarIngreso() {
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>Fecha</Text>
-        <TouchableOpacity 
-          style={styles.input} 
-          onPress={() => {/* Abrir date picker */}}
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => {/* Aquí podrías abrir un selector de fecha */}}
         >
           <Text>{ingreso.fecha?.toLocaleDateString() || 'Seleccionar fecha'}</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.button, styles.ingresoButton]}
         onPress={handleAgregarIngreso}
       >
