@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
-import { DatoGraficoBarras, DatoGraficoTorta, Movimiento } from './types';
+import { DatoGraficoBarras, DatoGraficoTorta, Movimiento } from '../types';
 import { Picker } from '@react-native-picker/picker';
-import { styles } from './styles';
+import { styles } from '../styles';
 
-import { db } from '../firebaseConfig';
+import { db } from '../../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 
 export default function HomeScreen() {

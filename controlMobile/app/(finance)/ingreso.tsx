@@ -1,13 +1,13 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Movimiento } from './types';
-import { styles } from './styles';
+import { Movimiento } from '../types';
+import { styles } from '../styles';
 
-import { db } from '../firebaseConfig';
+import { db } from '../../firebaseConfig';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
-export default function AgregarIngreso() {
+export function AgregarIngreso() {
   const router = useRouter();
 
   const [ingreso, setIngreso] = useState<Omit<Movimiento, 'id' | 'tipo'>>({
