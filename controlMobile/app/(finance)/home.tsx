@@ -1,11 +1,11 @@
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  ScrollView, 
-  RefreshControl, 
-  SafeAreaView 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  SafeAreaView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
@@ -16,49 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTabBar from '../CustomTabBar';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
-
-
-type HeaderProps = {
-  title: string;
-};
-
-// Componente Header
-function Header({ title }: HeaderProps) {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <SafeAreaView style={{ backgroundColor: '#ffffff' }}>
-      <View style={[headerStyles.container, { paddingTop: insets.top }]}>
-        <View style={headerStyles.titleContainer}>
-          <Text style={headerStyles.title}>{title}</Text>
-        </View>
-      </View>
-    </SafeAreaView>
-  );
-}
-const headerStyles = StyleSheet.create({
-  container: {
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    paddingHorizontal: 15,
-    height: 60,
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  titleContainer: {
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-});
+import Header from '../Header';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -100,6 +58,12 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Error al cargar movimientos:', error);
     }
+  };
+
+  const handleLogout = () => {
+    // Aquí tu lógica para cerrar sesión
+    console.log('Cerrando sesión...');
+    router.replace('/'); // Redirige al login
   };
 
   const onRefresh = useCallback(() => {
@@ -187,13 +151,15 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Header title="Resumen Financiero" />
-      
+      <Header
+        title="Sistema Financiero"
+        onLogout={handleLogout}
+      />
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ 
+        contentContainerStyle={{
           paddingBottom: 80 + insets.bottom,
-          paddingTop: 10 
+          paddingTop: 10
         }}
         refreshControl={
           <RefreshControl
@@ -218,7 +184,7 @@ export default function HomeScreen() {
               ))}
             </Picker>
           </View>
-          
+
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={anoSeleccionado}
@@ -272,7 +238,7 @@ export default function HomeScreen() {
 
         {/* Movimientos */}
         <Text style={styles.subtitle}>Movimientos de {meses[mesSeleccionado]}</Text>
-        
+
         {movimientosFiltrados.length > 0 ? (
           <View style={styles.movimientosContainer}>
             {[...movimientosFiltrados]
