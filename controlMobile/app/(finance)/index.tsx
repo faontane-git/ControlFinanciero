@@ -1,15 +1,68 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ScrollView, 
+  RefreshControl, 
+  SafeAreaView 
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
-import { DatoGraficoBarras, DatoGraficoTorta, Movimiento } from '../types';
+import { Movimiento } from '../types';
 import { Picker } from '@react-native-picker/picker';
-import { styles } from '../styles';
-
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CustomTabBar from '../CustomTabBar';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 
+
+type HeaderProps = {
+  title: string;
+};
+
+// Componente Header
+function Header({ title }: HeaderProps) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <SafeAreaView style={{ backgroundColor: '#ffffff' }}>
+      <View style={[headerStyles.container, { paddingTop: insets.top }]}>
+        <View style={headerStyles.titleContainer}>
+          <Text style={headerStyles.title}>{title}</Text>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+const headerStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    paddingHorizontal: 15,
+    height: 60,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  titleContainer: {
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+});
+
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [mesSeleccionado, setMesSeleccionado] = useState<number>(new Date().getMonth());
   const [anoSeleccionado, setAnoSeleccionado] = useState<number>(new Date().getFullYear());
@@ -18,7 +71,14 @@ export default function HomeScreen() {
     gastos: 0,
     balance: 0
   });
+  const [refreshing, setRefreshing] = useState(false);
 
+  const meses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+
+  // Funciones existentes
   const cargarMovimientos = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'movimientos'));
@@ -42,6 +102,11 @@ export default function HomeScreen() {
     }
   };
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    cargarMovimientos().finally(() => setRefreshing(false));
+  }, []);
+
   const calcularResumen = useCallback((movs: Movimiento[]) => {
     const totalIngresos = movs
       .filter((m) => m.tipo === 'Ingreso')
@@ -58,6 +123,22 @@ export default function HomeScreen() {
     };
   }, []);
 
+  const generarAnos = () => {
+    const anos = [];
+    const anoActual = new Date().getFullYear();
+    for (let i = 2020; i <= anoActual + 1; i++) {
+      anos.push(i);
+    }
+    return anos;
+  };
+
+  const handleMesChange = (mesIndex: number) => setMesSeleccionado(mesIndex);
+  const handleAnoChange = (ano: number) => setAnoSeleccionado(ano);
+
+  const formatCurrency = (value: number) => {
+    return `$${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+  };
+
   useEffect(() => {
     cargarMovimientos();
   }, []);
@@ -70,33 +151,8 @@ export default function HomeScreen() {
         fechaMov.getFullYear() === anoSeleccionado
       );
     });
-
     setResumen(calcularResumen(movimientosDelMes));
-  }, [movimientos, mesSeleccionado, anoSeleccionado, calcularResumen]);
-
-  const meses = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
-
-  const generarAnos = () => {
-    const anos = [];
-    const anoActual = new Date().getFullYear();
-    for (let i = 2020; i <= anoActual + 1; i++) {
-      anos.push(i);
-    }
-    return anos;
-  };
-
-  const anosDisponibles = generarAnos();
-
-  const handleMesChange = (mesIndex: number) => {
-    setMesSeleccionado(mesIndex);
-  };
-
-  const handleAnoChange = (ano: number) => {
-    setAnoSeleccionado(ano);
-  };
+  }, [movimientos, mesSeleccionado, anoSeleccionado]);
 
   const movimientosFiltrados = movimientos.filter(mov => {
     const fechaMov = new Date(mov.fecha!);
@@ -105,31 +161,6 @@ export default function HomeScreen() {
       fechaMov.getFullYear() === anoSeleccionado
     );
   });
-
-  const datosGraficoTorta = () => {
-    const gastosPorCategoria: Record<string, number> = {};
-
-    movimientosFiltrados
-      .filter(m => m.tipo === 'Gasto')
-      .forEach(mov => {
-        gastosPorCategoria[mov.categoria || 'Otros'] =
-          (gastosPorCategoria[mov.categoria || 'Otros'] || 0) + mov.monto;
-      });
-
-    return Object.entries(gastosPorCategoria).map(([categoria, monto]) => ({
-      x: categoria,
-      y: monto
-    }));
-  };
-
-  const datosGraficoBarras = [
-    { x: 'Ingresos', y: resumen.ingresos },
-    { x: 'Gastos', y: resumen.gastos }
-  ];
-
-  const formatCurrency = (value: number) => {
-    return `$${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-  };
 
   const renderItem = ({ item }: { item: Movimiento }) => (
     <TouchableOpacity
@@ -155,88 +186,253 @@ export default function HomeScreen() {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Resumen Financiero</Text>
-
-      {/* Selector de mes y año */}
-      <View style={styles.pickerContainer}>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={mesSeleccionado}
-            onValueChange={(itemValue) => handleMesChange(itemValue)}
-            style={styles.picker}
-            dropdownIconColor="#333"
-          >
-            {meses.map((mes, index) => (
-              <Picker.Item key={index} label={mes} value={index} />
-            ))}
-          </Picker>
-        </View>
-        
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={anoSeleccionado}
-            onValueChange={(itemValue) => handleAnoChange(itemValue)}
-            style={styles.picker}
-            dropdownIconColor="#333"
-          >
-            {anosDisponibles.map((ano) => (
-              <Picker.Item key={ano} label={ano.toString()} value={ano} />
-            ))}
-          </Picker>
-        </View>
-      </View>
-
-      {/* Tarjeta de resumen */}
-      <View style={styles.card}>
-        <View style={styles.resumenRow}>
-          <Text style={styles.label}>Ingresos:</Text>
-          <Text style={styles.ingreso}>{formatCurrency(resumen.ingresos)}</Text>
-        </View>
-        <View style={styles.resumenRow}>
-          <Text style={styles.label}>Gastos:</Text>
-          <Text style={styles.gasto}>{formatCurrency(resumen.gastos)}</Text>
-        </View>
-        <View style={styles.resumenRow}>
-          <Text style={styles.label}>Balance:</Text>
-          <Text style={[
-            styles.balance,
-            resumen.balance < 0 ? styles.negativo : styles.positivo
-          ]}>
-            {formatCurrency(resumen.balance)}
-          </Text>
-        </View>
-      </View>
-
-      {/* Botones de acción */}
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.ingresoButton]}
-          onPress={() => router.push('/ingreso')}
-        >
-          <Text style={styles.buttonText}>Agregar Ingreso</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.gastoButton]}
-          onPress={() => router.push('/gasto')}
-        >
-          <Text style={styles.buttonText}>Agregar Gasto</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Lista de movimientos */}
-      <Text style={styles.subtitle}>Movimientos de {meses[mesSeleccionado]}</Text>
-      <FlatList
-        data={[...movimientosFiltrados].sort((a, b) =>
-          new Date(b.fecha!).getTime() - new Date(a.fecha!).getTime()
-        )}
-        scrollEnabled={false}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No hay movimientos este mes</Text>
+    <View style={{ flex: 1 }}>
+      <Header title="Resumen Financiero" />
+      
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ 
+          paddingBottom: 80 + insets.bottom,
+          paddingTop: 10 
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#2f95dc']}
+            tintColor="#2f95dc"
+          />
         }
-      />
-    </ScrollView>
+      >
+        {/* Selector de mes/año */}
+        <View style={styles.pickerContainer}>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={mesSeleccionado}
+              onValueChange={handleMesChange}
+              style={styles.picker}
+              dropdownIconColor="#333"
+            >
+              {meses.map((mes, index) => (
+                <Picker.Item key={index} label={mes} value={index} />
+              ))}
+            </Picker>
+          </View>
+          
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={anoSeleccionado}
+              onValueChange={handleAnoChange}
+              style={styles.picker}
+              dropdownIconColor="#333"
+            >
+              {generarAnos().map((ano) => (
+                <Picker.Item key={ano} label={ano.toString()} value={ano} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        {/* Resumen */}
+        <View style={styles.card}>
+          <View style={styles.resumenRow}>
+            <Text style={styles.label}>Ingresos:</Text>
+            <Text style={styles.ingreso}>{formatCurrency(resumen.ingresos)}</Text>
+          </View>
+          <View style={styles.resumenRow}>
+            <Text style={styles.label}>Gastos:</Text>
+            <Text style={styles.gasto}>{formatCurrency(resumen.gastos)}</Text>
+          </View>
+          <View style={styles.resumenRow}>
+            <Text style={styles.label}>Balance:</Text>
+            <Text style={[
+              styles.balance,
+              resumen.balance < 0 ? styles.negativo : styles.positivo
+            ]}>
+              {formatCurrency(resumen.balance)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Botones */}
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.ingresoButton]}
+            onPress={() => router.push('/ingreso')}
+          >
+            <Text style={styles.buttonText}>Agregar Ingreso</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.gastoButton]}
+            onPress={() => router.push('/gasto')}
+          >
+            <Text style={styles.buttonText}>Agregar Gasto</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Movimientos */}
+        <Text style={styles.subtitle}>Movimientos de {meses[mesSeleccionado]}</Text>
+        
+        {movimientosFiltrados.length > 0 ? (
+          <View style={styles.movimientosContainer}>
+            {[...movimientosFiltrados]
+              .sort((a, b) => new Date(b.fecha!).getTime() - new Date(a.fecha!).getTime())
+              .map((item) => (
+                <View key={item.id}>{renderItem({ item })}</View>
+              ))}
+          </View>
+        ) : (
+          <Text style={styles.emptyText}>No hay movimientos este mes</Text>
+        )}
+      </ScrollView>
+
+      <CustomTabBar activeRoute="index" />
+    </View>
   );
 }
+
+// Estilos (ajusta según tu archivo styles.ts)
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 15,
+    marginTop: 15,
+  },
+  pickerWrapper: {
+    flex: 1,
+    marginHorizontal: 5,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    margin: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  resumenRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 5,
+  },
+  label: {
+    fontSize: 16,
+    color: '#555',
+  },
+  ingreso: {
+    fontSize: 16,
+    color: '#2ecc71',
+    fontWeight: 'bold',
+  },
+  gasto: {
+    fontSize: 16,
+    color: '#e74c3c',
+    fontWeight: 'bold',
+  },
+  balance: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  positivo: {
+    color: '#2ecc71',
+  },
+  negativo: {
+    color: '#e74c3c',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 15,
+    marginVertical: 10,
+  },
+  button: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  ingresoButton: {
+    backgroundColor: '#2ecc71',
+  },
+  gastoButton: {
+    backgroundColor: '#e74c3c',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginHorizontal: 15,
+    marginTop: 20,
+    marginBottom: 10,
+    color: '#333',
+  },
+  movimientosContainer: {
+    marginHorizontal: 15,
+  },
+  movItem: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  movItemIngreso: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#2ecc71',
+  },
+  movItemGasto: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#e74c3c',
+  },
+  movContent: {
+    flex: 1,
+  },
+  movDescripcion: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  movCategoria: {
+    fontSize: 14,
+    color: '#7f8c8d',
+    marginTop: 2,
+  },
+  movFecha: {
+    fontSize: 12,
+    color: '#95a5a6',
+    marginTop: 4,
+  },
+  movMonto: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginVertical: 20,
+    color: '#95a5a6',
+  },
+});

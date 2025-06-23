@@ -235,5 +235,11 @@ export const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: '#fff',
     },
+    scrollContent: {
+        paddingBottom: 30, // Espacio extra al final
+    },
+    movimientosContainer: {
+        marginBottom: 20,
+    }
 
 });

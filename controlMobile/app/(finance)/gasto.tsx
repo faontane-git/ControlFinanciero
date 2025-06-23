@@ -7,7 +7,7 @@ import { styles } from '../styles';
 import { db } from '../../firebaseConfig';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
-export function AgregarGasto() {
+export default function AgregarGasto() {
   const router = useRouter();
   const [gasto, setGasto] = useState<Omit<Movimiento, 'id' | 'tipo'>>({
     monto: 0,

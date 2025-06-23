@@ -7,7 +7,7 @@ import { styles } from '../styles';
 import { db } from '../../firebaseConfig';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
-export function AgregarIngreso() {
+export default function AgregarIngreso() {
   const router = useRouter();
 
   const [ingreso, setIngreso] = useState<Omit<Movimiento, 'id' | 'tipo'>>({

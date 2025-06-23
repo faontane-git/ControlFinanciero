@@ -2,7 +2,7 @@ import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 
-export  function AddTransactionScreen() {
+export default function AddTransactionScreen() {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const router = useRouter();
