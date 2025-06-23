@@ -154,6 +154,7 @@ export default function HomeScreen() {
       <Header
         title="Sistema Financiero"
         onLogout={handleLogout}
+        logo={require('../../assets/images/logo.png')} // Para imágenes locales
       />
       <ScrollView
         style={styles.container}
