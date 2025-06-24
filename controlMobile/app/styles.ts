@@ -240,6 +240,64 @@ export const styles = StyleSheet.create({
     },
     movimientosContainer: {
         marginBottom: 20,
-    }
+    },
+    screenTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginVertical: 20,
+        marginLeft: 15,
+        color: '#333',
+    },
+    activosContainer: {
+        width: '100%',
+        paddingHorizontal: 15,
+    },
+    activoCard: {
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    activoHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    activoIcon: {
+        marginRight: 12,
+    },
+    activoTipo: {
+        fontSize: 14,
+        color: '#666',
+    },
+    activoNombre: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+    },
+    activoSaldo: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#1E88E5',
+        marginVertical: 8,
+    },
+    activoDetalles: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: '#EEE',
+        paddingTop: 10,
+        marginTop: 10,
+    },
+    activoDetalleText: {
+        fontSize: 14,
+        color: '#666',
+    },
 
 });

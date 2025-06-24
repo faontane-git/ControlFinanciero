@@ -17,13 +17,13 @@ export default function CustomTabBar({ activeRoute }) {
         },
         {
             name: 'activos',
-            title: 'Activos',
+            title: 'activos',
             iconActive: 'trending-up',
             iconInactive: 'trending-up-outline'
         },
         {
             name: 'pasivos',
-            title: 'Pasivos',
+            title: 'pasivos',
             iconActive: 'trending-down',
             iconInactive: 'trending-down-outline'
         },
@@ -38,7 +38,7 @@ export default function CustomTabBar({ activeRoute }) {
                         <TouchableOpacity
                             key={tab.name}
                             style={styles.tabButton}
-                            onPress={() => router.navigate(`/${tab.name}`)}
+                            onPress={() => router.navigate(`/(finance)/${tab.name}`)}
                             activeOpacity={0.7}
                         >
                             <Ionicons
