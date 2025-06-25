@@ -150,111 +150,114 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      <Header
-        title="Sistema Financiero"
-        onLogout={handleLogout}
-        logo={require('../../assets/images/logo.png')} // Para imágenes locales
-      />
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{
-          paddingBottom: 80 + insets.bottom,
-          paddingTop: 10
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#2f95dc']}
-            tintColor="#2f95dc"
-          />
-        }
-      >
-        {/* Selector de mes/año */}
-        <View style={styles.pickerContainer}>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={mesSeleccionado}
-              onValueChange={handleMesChange}
-              style={styles.picker}
-              dropdownIconColor="#333"
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <Header
+          title="Sistema Financiero"
+          onLogout={handleLogout}
+          logo={require('../../assets/images/logo.png')} // Para imágenes locales
+        />
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{
+            paddingBottom: 80 + insets.bottom,
+            paddingTop: 10
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#2f95dc']}
+              tintColor="#2f95dc"
+            />
+          }
+        >
+          {/* Selector de mes/año */}
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={mesSeleccionado}
+                onValueChange={handleMesChange}
+                style={styles.picker}
+                dropdownIconColor="#333"
+              >
+                {meses.map((mes, index) => (
+                  <Picker.Item key={index} label={mes} value={index} />
+                ))}
+              </Picker>
+            </View>
+
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={anoSeleccionado}
+                onValueChange={handleAnoChange}
+                style={styles.picker}
+                dropdownIconColor="#333"
+              >
+                {generarAnos().map((ano) => (
+                  <Picker.Item key={ano} label={ano.toString()} value={ano} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          {/* Resumen */}
+          <View style={styles.card}>
+            <View style={styles.resumenRow}>
+              <Text style={styles.label}>Ingresos:</Text>
+              <Text style={styles.ingreso}>{formatCurrency(resumen.ingresos)}</Text>
+            </View>
+            <View style={styles.resumenRow}>
+              <Text style={styles.label}>Gastos:</Text>
+              <Text style={styles.gasto}>{formatCurrency(resumen.gastos)}</Text>
+            </View>
+            <View style={styles.resumenRow}>
+              <Text style={styles.label}>Balance:</Text>
+              <Text style={[
+                styles.balance,
+                resumen.balance < 0 ? styles.negativo : styles.positivo
+              ]}>
+                {formatCurrency(resumen.balance)}
+              </Text>
+            </View>
+          </View>
+
+          {/* Botones */}
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.ingresoButton]}
+              onPress={() => router.push('/ingreso')}
             >
-              {meses.map((mes, index) => (
-                <Picker.Item key={index} label={mes} value={index} />
-              ))}
-            </Picker>
-          </View>
-
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={anoSeleccionado}
-              onValueChange={handleAnoChange}
-              style={styles.picker}
-              dropdownIconColor="#333"
+              <Text style={styles.buttonText}>Agregar Ingreso</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.gastoButton]}
+              onPress={() => router.push('/gasto')}
             >
-              {generarAnos().map((ano) => (
-                <Picker.Item key={ano} label={ano.toString()} value={ano} />
-              ))}
-            </Picker>
+              <Text style={styles.buttonText}>Agregar Gasto</Text>
+            </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Resumen */}
-        <View style={styles.card}>
-          <View style={styles.resumenRow}>
-            <Text style={styles.label}>Ingresos:</Text>
-            <Text style={styles.ingreso}>{formatCurrency(resumen.ingresos)}</Text>
-          </View>
-          <View style={styles.resumenRow}>
-            <Text style={styles.label}>Gastos:</Text>
-            <Text style={styles.gasto}>{formatCurrency(resumen.gastos)}</Text>
-          </View>
-          <View style={styles.resumenRow}>
-            <Text style={styles.label}>Balance:</Text>
-            <Text style={[
-              styles.balance,
-              resumen.balance < 0 ? styles.negativo : styles.positivo
-            ]}>
-              {formatCurrency(resumen.balance)}
-            </Text>
-          </View>
-        </View>
+          {/* Movimientos */}
+          <Text style={styles.subtitle}>Movimientos de {meses[mesSeleccionado]}</Text>
 
-        {/* Botones */}
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={[styles.button, styles.ingresoButton]}
-            onPress={() => router.push('/ingreso')}
-          >
-            <Text style={styles.buttonText}>Agregar Ingreso</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.gastoButton]}
-            onPress={() => router.push('/gasto')}
-          >
-            <Text style={styles.buttonText}>Agregar Gasto</Text>
-          </TouchableOpacity>
-        </View>
+          {movimientosFiltrados.length > 0 ? (
+            <View style={styles.movimientosContainer}>
+              {[...movimientosFiltrados]
+                .sort((a, b) => new Date(b.fecha!).getTime() - new Date(a.fecha!).getTime())
+                .map((item) => (
+                  <View key={item.id}>{renderItem({ item })}</View>
+                ))}
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>No hay movimientos este mes</Text>
+          )}
+        </ScrollView>
 
-        {/* Movimientos */}
-        <Text style={styles.subtitle}>Movimientos de {meses[mesSeleccionado]}</Text>
+        <CustomTabBar activeRoute="index" />
+      </View>
+    </SafeAreaView>
 
-        {movimientosFiltrados.length > 0 ? (
-          <View style={styles.movimientosContainer}>
-            {[...movimientosFiltrados]
-              .sort((a, b) => new Date(b.fecha!).getTime() - new Date(a.fecha!).getTime())
-              .map((item) => (
-                <View key={item.id}>{renderItem({ item })}</View>
-              ))}
-          </View>
-        ) : (
-          <Text style={styles.emptyText}>No hay movimientos este mes</Text>
-        )}
-      </ScrollView>
-
-      <CustomTabBar activeRoute="index" />
-    </View>
   );
 }
 

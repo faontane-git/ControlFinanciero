@@ -1,5 +1,7 @@
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomTabBar from '../CustomTabBar';
 import { styles } from '../styles';
 
 export default function ActivosScreen() {
@@ -39,34 +41,38 @@ export default function ActivosScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.screenTitle}>Mis Activos</Text>
-      
-      <ScrollView style={styles.activosContainer}>
-        {activos.map((activo) => (
-          <View key={activo.id} style={styles.activoCard}>
-            <View style={styles.activoHeader}>
-              <Ionicons 
-                name={'trending-up-outline'} 
-                size={24} 
-                color="#1E88E5" 
-                style={styles.activoIcon} 
-              />
-              <View>
-                <Text style={styles.activoTipo}>{activo.tipo}</Text>
-                <Text style={styles.activoNombre}>{activo.nombre}</Text>
+    <View style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <Text style={styles.screenTitle}>Mis Activos</Text>
+
+        <ScrollView style={styles.activosContainer} contentContainerStyle={{ paddingBottom: 120 }}>
+          {activos.map((activo) => (
+            <View key={activo.id} style={styles.activoCard}>
+              <View style={styles.activoHeader}>
+                <Ionicons
+                  size={24}
+                  color="#1E88E5"
+                  style={styles.activoIcon}
+                />
+                <View>
+                  <Text style={styles.activoTipo}>{activo.tipo}</Text>
+                  <Text style={styles.activoNombre}>{activo.nombre}</Text>
+                </View>
+              </View>
+
+              <Text style={styles.activoSaldo}>{activo.saldo}</Text>
+
+              <View style={styles.activoDetalles}>
+                <Text style={styles.activoDetalleText}>{activo.detalles}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#888" />
               </View>
             </View>
-            
-            <Text style={styles.activoSaldo}>{activo.saldo}</Text>
-            
-            <View style={styles.activoDetalles}>
-              <Text style={styles.activoDetalleText}>{activo.detalles}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#888" />
-            </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Tab bar al fondo */}
+      <CustomTabBar activeRoute="activos" />
     </View>
   );
 }
