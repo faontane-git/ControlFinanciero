@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 10, // Hace el header más alto
-    backgroundColor: '#1E88E5',
+    backgroundColor: '#34495e',
   },
   title: {
     flex: 1,

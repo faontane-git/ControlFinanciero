@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTabBar from '../CustomTabBar';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { Alert } from 'react-native';
 import Header from '../Header';
 
 export default function HomeScreen() {
@@ -99,6 +101,30 @@ export default function HomeScreen() {
   const handleMesChange = (mesIndex: number) => setMesSeleccionado(mesIndex);
   const handleAnoChange = (ano: number) => setAnoSeleccionado(ano);
 
+
+  const handleEliminarMovimiento = (id: string) => {
+    Alert.alert(
+      'Eliminar movimiento',
+      '¿Estás seguro de eliminar este movimiento?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, 'movimientos', id));
+              setMovimientos((prev) => prev.filter((mov) => mov.id !== id));
+            } catch (error) {
+              console.error('Error al eliminar el movimiento:', error);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+
   const formatCurrency = (value: number) => {
     return `$${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
   };
@@ -143,11 +169,22 @@ export default function HomeScreen() {
           })}
         </Text>
       </View>
+
+      <View style={styles.actions}>
+        <TouchableOpacity onPress={() => console.log(item)}>
+          <Ionicons name="create-outline" size={20} color="#2980b9" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleEliminarMovimiento(item.id)}>
+          <Ionicons name="trash-outline" size={20} color="#e74c3c" style={{ marginLeft: 10 }} />
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.movMonto}>
         {item.tipo === 'Ingreso' ? '+' : '-'}{formatCurrency(item.monto)}
       </Text>
     </TouchableOpacity>
   );
+
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -254,7 +291,7 @@ export default function HomeScreen() {
           )}
         </ScrollView>
 
-        <CustomTabBar activeRoute="index" />
+        <CustomTabBar activeRoute="home" />
       </View>
     </SafeAreaView>
 
@@ -404,5 +441,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 20,
     color: '#95a5a6',
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 10,
+    gap: 8,  
   },
 });

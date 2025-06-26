@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomTabBar from '../CustomTabBar';
 import { styles } from '../styles';
 
 export default function PasivosScreen() {
@@ -64,25 +65,25 @@ export default function PasivosScreen() {
   return (
     <View style={styles.container}>
       <Text style={localStyles.screenTitle}>Mis Pasivos</Text>
-      
+
       <ScrollView style={localStyles.scrollContainer}>
         {/* Sección de Créditos */}
         <Text style={localStyles.sectionTitle}>Créditos</Text>
         {creditos.map((credito) => (
           <View key={`credito-${credito.id}`} style={localStyles.itemCard}>
             <View style={localStyles.itemHeader}>
-              <Ionicons 
-                name={"home-outline"} 
-                size={24} 
-                color="#FF5252" 
-                style={localStyles.itemIcon} 
+              <Ionicons
+                name={"home-outline"}
+                size={24}
+                color="#FF5252"
+                style={localStyles.itemIcon}
               />
               <View style={localStyles.itemTextContainer}>
                 <Text style={localStyles.itemName}>{credito.tipo}</Text>
                 <Text style={localStyles.itemDetail}>{credito.entidad}</Text>
               </View>
             </View>
-            
+
             <View style={localStyles.itemData}>
               <View style={localStyles.dataColumn}>
                 <Text style={localStyles.dataLabel}>Monto total</Text>
@@ -105,11 +106,11 @@ export default function PasivosScreen() {
         {gastosMensuales.map((gasto) => (
           <View key={`gasto-${gasto.id}`} style={localStyles.itemCard}>
             <View style={localStyles.itemHeader}>
-              <Ionicons 
-                name={ "home-outline"} 
-                size={24} 
-                color="#4CAF50" 
-                style={localStyles.itemIcon} 
+              <Ionicons
+                name={"home-outline"}
+                size={24}
+                color="#4CAF50"
+                style={localStyles.itemIcon}
               />
               <View style={localStyles.itemTextContainer}>
                 <Text style={localStyles.itemName}>{gasto.servicio}</Text>
@@ -117,7 +118,7 @@ export default function PasivosScreen() {
               </View>
               <Text style={localStyles.itemAmount}>{gasto.monto}</Text>
             </View>
-            
+
             <View style={localStyles.itemFooter}>
               <Text style={localStyles.footerText}>Pago: {gasto.fechaPago}</Text>
               <Ionicons name="calendar-outline" size={16} color="#666" />
@@ -125,6 +126,8 @@ export default function PasivosScreen() {
           </View>
         ))}
       </ScrollView>
+      {/* Tab bar al fondo */}
+      <CustomTabBar activeRoute="pasivos" />
     </View>
   );
 }

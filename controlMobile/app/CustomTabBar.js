@@ -10,7 +10,7 @@ export default function CustomTabBar({ activeRoute }) {
 
   const tabs = [
     {
-      name: 'index',
+      name: 'home',
       title: 'Inicio',
       iconActive: 'pie-chart',
       iconInactive: 'pie-chart-outline'
