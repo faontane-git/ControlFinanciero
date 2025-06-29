@@ -3,7 +3,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Movimiento } from '../types';
 import { styles } from '../styles';
-
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Platform } from 'react-native';
 import { db } from '../../firebaseConfig';
 import { collection, addDoc, Timestamp, doc, updateDoc } from 'firebase/firestore';
 
@@ -12,6 +13,7 @@ export default function AgregarGasto() {
   const params = useLocalSearchParams();
   const [isEditing, setIsEditing] = useState(false);
   const [movimientoId, setMovimientoId] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [gasto, setGasto] = useState<Omit<Movimiento, 'id' | 'tipo'>>({
     monto: 0,
     descripcion: '',
@@ -24,6 +26,26 @@ export default function AgregarGasto() {
     'Salud', 'Educación', 'Ropa', 'Otros'
   ];
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    // Para iOS necesitamos ocultar el picker después de seleccionar
+    if (Platform.OS === 'ios') {
+      setShowDatePicker(false);
+    }
+    if (selectedDate) {
+      setGasto({ ...gasto, fecha: selectedDate });
+      setShowDatePicker(false);
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+
   // Cargar datos si estamos editando
   useEffect(() => {
     if (params.movimiento) {
@@ -32,7 +54,7 @@ export default function AgregarGasto() {
         setGasto({
           monto: movData.monto,
           descripcion: movData.descripcion,
-          fecha: new Date(movData.fecha.seconds * 1000),
+          fecha: new Date(movData.fecha),
           categoria: movData.categoria
         });
         setMovimientoId(movData.id);
@@ -130,6 +152,37 @@ export default function AgregarGasto() {
           ))}
         </View>
       </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Fecha</Text>
+        <TouchableOpacity
+          style={[styles.input, styles.dateInput]}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text>{gasto.fecha ? formatDate(gasto.fecha) : 'Seleccionar fecha'}</Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={gasto.fecha || new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleDateChange}
+            maximumDate={new Date()} // No permitir fechas futuras
+            locale="es-ES" // Configuración regional en español
+          />
+        )}
+
+        {Platform.OS === 'ios' && showDatePicker && (
+          <TouchableOpacity
+            style={styles.datePickerButton}
+            onPress={() => setShowDatePicker(false)}
+          >
+            <Text style={styles.datePickerButtonText}>Aceptar</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       <TouchableOpacity
         style={[styles.button, styles.ingresoButton]}
         onPress={handleAgregarGasto}

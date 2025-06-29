@@ -43,7 +43,7 @@ export default function Header({
           {/* Botón logout alineado */}
           {onLogout && (
             <TouchableOpacity onPress={onLogout} style={styles.logoutButton}>
-              <Ionicons name="log-out-outline" size={24} color="#FFFFFF" />
+              <Ionicons name="log-out-outline" size={24} color="black" />
             </TouchableOpacity>
           )}
         </View>
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 10, // Hace el header más alto
-    backgroundColor: '#34495e',
+    backgroundColor: '#FFFFFF',
   },
   title: {
     flex: 1,

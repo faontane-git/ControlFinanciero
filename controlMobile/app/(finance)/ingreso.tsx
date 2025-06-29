@@ -56,7 +56,6 @@ export default function AgregarIngreso() {
           fecha: new Date(movData.fecha),
           categoria: movData.categoria
         });
-        console.log(formatDate(movData.fecha))
         setMovimientoId(movData.id);
         setIsEditing(true);
       } catch (error) {
