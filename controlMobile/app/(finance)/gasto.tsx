@@ -1,14 +1,17 @@
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useState, useEffect } from 'react';
 import { Movimiento } from '../types';
 import { styles } from '../styles';
 
 import { db } from '../../firebaseConfig';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, doc, updateDoc } from 'firebase/firestore';
 
 export default function AgregarGasto() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const [isEditing, setIsEditing] = useState(false);
+  const [movimientoId, setMovimientoId] = useState('');
   const [gasto, setGasto] = useState<Omit<Movimiento, 'id' | 'tipo'>>({
     monto: 0,
     descripcion: '',
@@ -21,6 +24,26 @@ export default function AgregarGasto() {
     'Salud', 'Educación', 'Ropa', 'Otros'
   ];
 
+  // Cargar datos si estamos editando
+  useEffect(() => {
+    if (params.movimiento) {
+      try {
+        const movData = JSON.parse(params.movimiento as string);
+        setGasto({
+          monto: movData.monto,
+          descripcion: movData.descripcion,
+          fecha: new Date(movData.fecha.seconds * 1000),
+          categoria: movData.categoria
+        });
+        setMovimientoId(movData.id);
+        setIsEditing(true);
+      } catch (error) {
+        console.error('Error al parsear movimiento:', error);
+      }
+    }
+  }, [params.movimiento]);
+
+
   const handleAgregarGasto = async () => {
     if (!gasto.descripcion || gasto.monto <= 0 || !gasto.categoria) {
       Alert.alert('Error', 'Por favor completa todos los campos correctamente');
@@ -28,15 +51,28 @@ export default function AgregarGasto() {
     }
 
     try {
-      await addDoc(collection(db, 'movimientos'), {
-        ...gasto,
-        tipo: 'Gasto',
-        fecha: Timestamp.fromDate(gasto.fecha || new Date())
-      });
+      if (isEditing) {
+        await updateDoc(doc(db, 'movimientos', movimientoId), {
+          ...gasto,
+          fecha: Timestamp.fromDate(gasto.fecha || new Date())
+        });
 
-      Alert.alert('Éxito', 'Gasto agregado correctamente', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+        Alert.alert('Éxito', 'Ingreso actualizado correctamente', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      }
+      else {
+        await addDoc(collection(db, 'movimientos'), {
+          ...gasto,
+          tipo: 'Gasto',
+          fecha: Timestamp.fromDate(gasto.fecha || new Date())
+        });
+
+        Alert.alert('Éxito', 'Gasto agregado correctamente', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      }
+
     } catch (error) {
       console.error('Error al guardar gasto:', error);
       Alert.alert('Error', 'Hubo un problema al guardar el gasto');
@@ -94,12 +130,13 @@ export default function AgregarGasto() {
           ))}
         </View>
       </View>
-
       <TouchableOpacity
-        style={[styles.button, styles.gastoButton]}
+        style={[styles.button, styles.ingresoButton]}
         onPress={handleAgregarGasto}
       >
-        <Text style={styles.buttonText}>Agregar Gasto</Text>
+        <Text style={styles.buttonText}>
+          {isEditing ? 'Editar Gasto' : 'Agregar Gasto'}
+        </Text>
       </TouchableOpacity>
     </View>
   );

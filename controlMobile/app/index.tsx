@@ -9,14 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,7 +32,7 @@ export default function LoginScreen() {
     // Simulación de autenticación
     setTimeout(() => {
       setLoading(false);
-      if (email === 'usuario@gmail.com' && password === '12345') {
+      if (username === 'admin' && password === '12345') {
         router.replace('/home');
       } else {
         setError('Credenciales incorrectas');
@@ -41,12 +41,8 @@ export default function LoginScreen() {
   };
 
   const validateForm = () => {
-    if (!email.trim()) {
-      setError('Ingresa tu correo electrónico');
-      return false;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Correo electrónico inválido');
+    if (!username.trim()) {
+      setError('Ingresa tu nombre de usuario');
       return false;
     }
     if (!password.trim()) {
@@ -66,24 +62,21 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Logo y título */}
           <View style={styles.header}>
             <Ionicons name="lock-closed" size={60} color="#1E88E5" />
           </View>
 
-          {/* Formulario */}
           <View style={styles.formContainer}>
-            {/* Input Email */}
+            {/* Input Usuario */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Correo Electrónico</Text>
+              <Text style={styles.label}>Usuario</Text>
               <TextInput
                 style={styles.input}
-                placeholder="tucorreo@ejemplo.com"
+                placeholder="usuario123"
                 placeholderTextColor="#95a5a6"
-                keyboardType="email-address"
                 autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
+                value={username}
+                onChangeText={setUsername}
               />
             </View>
 
@@ -112,7 +105,8 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Mensaje de error */}
+            {/* Error */}
+            {!!error && <Text style={styles.errorText}>{error}</Text>}
 
             {/* Botón de Login */}
             <TouchableOpacity
@@ -150,12 +144,6 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 15,
   },
   formContainer: {
     backgroundColor: '#fff',
@@ -212,20 +200,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  linksContainer: {
-    marginTop: 25,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#1E88E5',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#eee',
-    width: '100%',
-    marginVertical: 15,
   },
 });

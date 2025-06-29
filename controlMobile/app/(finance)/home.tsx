@@ -171,7 +171,14 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity onPress={() => console.log(item)}>
+        <TouchableOpacity onPress={() => {
+          console.log(item);
+          const route = item.tipo === 'Ingreso' ? '/ingreso' : '/gasto';
+          router.push({
+            pathname: route,
+            params: { movimiento: JSON.stringify(item) }
+          });
+        }}>
           <Ionicons name="create-outline" size={20} color="#2980b9" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handleEliminarMovimiento(item.id)}>
@@ -190,7 +197,7 @@ export default function HomeScreen() {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
         <Header
-          title="Sistema Financiero"
+          title=""
           onLogout={handleLogout}
           logo={require('../../assets/images/logo.png')} // Para imágenes locales
         />
@@ -446,6 +453,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 10,
-    gap: 8,  
+    gap: 8,
   },
 });

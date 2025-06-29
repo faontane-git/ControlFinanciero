@@ -299,5 +299,24 @@ export const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
     },
+    dateInput: {
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+    },
+
+    // Estilos específicos para iOS (botón Aceptar)
+    datePickerButton: {
+        backgroundColor: '#2ecc71',
+        padding: 10,
+        borderRadius: 5,
+        marginTop: 10,
+        alignSelf: 'flex-end',
+    },
+
+    datePickerButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
 
 });
