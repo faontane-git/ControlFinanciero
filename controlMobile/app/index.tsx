@@ -33,7 +33,7 @@ export default function LoginScreen() {
     setTimeout(() => {
       setLoading(false);
       if (username === 'admin' && password === '12345') {
-        router.replace('/home');
+        router.replace('/home' as never);
       } else {
         setError('Credenciales incorrectas');
       }

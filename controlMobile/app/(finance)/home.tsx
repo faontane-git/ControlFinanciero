@@ -65,7 +65,7 @@ export default function HomeScreen() {
   const handleLogout = () => {
     // Aquí tu lógica para cerrar sesión
     console.log('Cerrando sesión...');
-    router.replace('/'); // Redirige al login
+    router.replace('/' as never); // Redirige al login
   };
 
   const onRefresh = useCallback(() => {
@@ -171,14 +171,22 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity onPress={() => {
-          console.log(item);
-          const route = item.tipo === 'Ingreso' ? '/ingreso' : '/gasto';
-          router.push({
-            pathname: route,
-            params: { movimiento: JSON.stringify(item) }
-          });
-        }}>
+        <TouchableOpacity
+          onPress={() => {
+            if (item.tipo === 'Ingreso') {
+              router.push({
+                pathname: '/ingreso' as never,
+                params: { movimiento: JSON.stringify(item) }
+              });
+            } else {
+              router.push({
+                pathname: '/gasto' as never,
+                params: { movimiento: JSON.stringify(item) }
+              });
+            }
+          }}
+        >
+
           <Ionicons name="create-outline" size={20} color="#2980b9" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handleEliminarMovimiento(item.id)}>
@@ -201,6 +209,7 @@ export default function HomeScreen() {
           onLogout={handleLogout}
           logo={require('../../assets/images/logo.png')} // Para imágenes locales
         />
+
         <ScrollView
           style={styles.container}
           contentContainerStyle={{
@@ -216,6 +225,8 @@ export default function HomeScreen() {
             />
           }
         >
+          {/* Título del resumen */}
+          <Text style={styles.titulo}>Posición Consolidada</Text>
           {/* Selector de mes/año */}
           <View style={styles.pickerContainer}>
             <View style={styles.pickerWrapper}>
@@ -270,13 +281,13 @@ export default function HomeScreen() {
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
               style={[styles.button, styles.ingresoButton]}
-              onPress={() => router.push('/ingreso')}
+              onPress={() => router.push('/ingreso' as never)}
             >
               <Text style={styles.buttonText}>Agregar Ingreso</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.gastoButton]}
-              onPress={() => router.push('/gasto')}
+              onPress={() => router.push('/gasto' as never)}
             >
               <Text style={styles.buttonText}>Agregar Gasto</Text>
             </TouchableOpacity>
@@ -310,6 +321,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  titulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginHorizontal: 15,
+    color: '#2c3e50',
   },
   pickerContainer: {
     flexDirection: 'row',
