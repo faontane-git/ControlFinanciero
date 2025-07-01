@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomTabBar from '../CustomTabBar';
 import { styles } from '../styles';
@@ -66,6 +66,19 @@ export default function PasivosScreen() {
     <View style={styles.container}>
       <Text style={localStyles.screenTitle}>Mis Pasivos</Text>
 
+      {/* Botones debajo del título */}
+      <View style={localStyles.buttonsContainer}>
+        <TouchableOpacity style={localStyles.addButton} onPress={() => console.log('Añadir crédito')}>
+          <Ionicons name="add-circle-outline" size={18} color="#1E88E5" />
+          <Text style={localStyles.addButtonText}>Añadir Crédito</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={localStyles.addButton} onPress={() => console.log('Añadir gasto')}>
+          <Ionicons name="add-circle-outline" size={18} color="#1E88E5" />
+          <Text style={localStyles.addButtonText}>Añadir Gasto</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView style={localStyles.scrollContainer}>
         {/* Sección de Créditos */}
         <Text style={localStyles.sectionTitle}>Créditos</Text>
@@ -73,7 +86,7 @@ export default function PasivosScreen() {
           <View key={`credito-${credito.id}`} style={localStyles.itemCard}>
             <View style={localStyles.itemHeader}>
               <Ionicons
-                name={"home-outline"}
+                name={credito.icono as any}
                 size={24}
                 color="#FF5252"
                 style={localStyles.itemIcon}
@@ -107,7 +120,7 @@ export default function PasivosScreen() {
           <View key={`gasto-${gasto.id}`} style={localStyles.itemCard}>
             <View style={localStyles.itemHeader}>
               <Ionicons
-                name={"home-outline"}
+                name={gasto.icono as any}
                 size={24}
                 color="#4CAF50"
                 style={localStyles.itemIcon}
@@ -126,7 +139,7 @@ export default function PasivosScreen() {
           </View>
         ))}
       </ScrollView>
-      {/* Tab bar al fondo */}
+
       <CustomTabBar activeRoute="pasivos" />
     </View>
   );
@@ -137,8 +150,26 @@ const localStyles = StyleSheet.create({
   screenTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    margin: 20,
+    marginHorizontal: 20,
+    marginTop: 20,
     color: '#333',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginHorizontal: 20,
+    marginBottom: 10,
+    gap: 15,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    marginLeft: 6,
+    color: '#1E88E5',
+    fontWeight: '600',
+    fontSize: 14,
   },
   scrollContainer: {
     width: '100%',

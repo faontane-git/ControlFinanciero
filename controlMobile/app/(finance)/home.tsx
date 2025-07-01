@@ -205,9 +205,8 @@ export default function HomeScreen() {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
         <Header
-          title=""
           onLogout={handleLogout}
-          logo={require('../../assets/images/logo.png')}  
+          logo={require('../../assets/images/logo.png')}
         />
 
         <ScrollView

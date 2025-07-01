@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View,
-  Text,
+  Image,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
@@ -11,16 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type HeaderProps = {
-  title: string;
   onLogout?: () => void;
-  logo?: any; // No se usa en este ejemplo, pero lo puedes reintegrar si lo necesitas
+  logo?: any; // require('path/to/logo.png')
 };
 
-export default function Header({
-  title,
-  onLogout,
-  logo,
-}: HeaderProps) {
+export default function Header({ onLogout, logo }: HeaderProps) {
   const insets = useSafeAreaInsets();
   const isIOS = Platform.OS === 'ios';
 
@@ -35,15 +30,13 @@ export default function Header({
         ]}
       >
         <View style={styles.header}>
-          {/* Título centrado */}
-          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-            {title || ''}
-          </Text>
+          {/* Logo a la izquierda */}
+          {logo && <Image source={logo} style={styles.logo} resizeMode="contain" />}
 
-          {/* Botón logout alineado */}
+          {/* Botón logout a la derecha */}
           {onLogout && (
             <TouchableOpacity onPress={onLogout} style={styles.logoutButton}>
-              <Ionicons name="log-out-outline" size={24} color="black" />
+              <Ionicons name="log-out-outline" size={24} color="#333" />
             </TouchableOpacity>
           )}
         </View>
@@ -60,19 +53,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 10, // Hace el header más alto
+    paddingHorizontal: 8,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
   },
-  title: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
+  logo: {
+    height: 35,
+    width: 140,
   },
   logoutButton: {
     padding: 8,
-    marginLeft: 10,
   },
 });
