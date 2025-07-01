@@ -207,7 +207,7 @@ export default function HomeScreen() {
         <Header
           title=""
           onLogout={handleLogout}
-          logo={require('../../assets/images/logo.png')} // Para imágenes locales
+          logo={require('../../assets/images/logo.png')}  
         />
 
         <ScrollView
@@ -342,6 +342,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 50,
+    backgroundColor: '#fff',
   },
   card: {
     backgroundColor: '#fff',

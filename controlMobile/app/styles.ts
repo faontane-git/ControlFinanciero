@@ -242,11 +242,10 @@ export const styles = StyleSheet.create({
         marginBottom: 20,
     },
     screenTitle: {
-        fontSize: 24,
+        fontSize: 16,
         fontWeight: 'bold',
-        marginVertical: 20,
-        marginLeft: 15,
-        color: '#333',
+        marginHorizontal: 15,
+        color: '#2c3e50',
     },
     activosContainer: {
         width: '100%',
