@@ -140,7 +140,6 @@ export default function PasivosScreen() {
         ))}
       </ScrollView>
 
-      <CustomTabBar activeRoute="pasivos" />
     </View>
   );
 }

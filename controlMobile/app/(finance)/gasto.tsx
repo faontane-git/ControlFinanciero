@@ -15,7 +15,7 @@ export default function AgregarGasto() {
   const [movimientoId, setMovimientoId] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [gasto, setGasto] = useState<Omit<Movimiento, 'id' | 'tipo'>>({
-    monto: 0,
+    monto: '',
     descripcion: '',
     fecha: new Date(),
     categoria: ''
@@ -52,7 +52,7 @@ export default function AgregarGasto() {
       try {
         const movData = JSON.parse(params.movimiento as string);
         setGasto({
-          monto: movData.monto,
+          monto: String(movData.monto),
           descripcion: movData.descripcion,
           fecha: new Date(movData.fecha),
           categoria: movData.categoria
@@ -67,34 +67,34 @@ export default function AgregarGasto() {
 
 
   const handleAgregarGasto = async () => {
-    if (!gasto.descripcion || gasto.monto <= 0 || !gasto.categoria) {
+    const montoNumerico = parseFloat(gasto.monto);
+
+    if (!gasto.descripcion || isNaN(montoNumerico) || montoNumerico <= 0 || !gasto.categoria) {
       Alert.alert('Error', 'Por favor completa todos los campos correctamente');
       return;
     }
 
     try {
-      if (isEditing) {
-        await updateDoc(doc(db, 'movimientos', movimientoId), {
-          ...gasto,
-          fecha: Timestamp.fromDate(gasto.fecha || new Date())
-        });
+      const dataToSave = {
+        ...gasto,
+        monto: montoNumerico,
+        fecha: Timestamp.fromDate(gasto.fecha || new Date()),
+      };
 
+      if (isEditing) {
+        await updateDoc(doc(db, 'movimientos', movimientoId), dataToSave);
         Alert.alert('Éxito', 'Ingreso actualizado correctamente', [
           { text: 'OK', onPress: () => router.back() }
         ]);
-      }
-      else {
+      } else {
         await addDoc(collection(db, 'movimientos'), {
-          ...gasto,
-          tipo: 'Gasto',
-          fecha: Timestamp.fromDate(gasto.fecha || new Date())
+          ...dataToSave,
+          tipo: 'Gasto'
         });
-
         Alert.alert('Éxito', 'Gasto agregado correctamente', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       }
-
     } catch (error) {
       console.error('Error al guardar gasto:', error);
       Alert.alert('Error', 'Hubo un problema al guardar el gasto');
@@ -120,11 +120,14 @@ export default function AgregarGasto() {
         <TextInput
           style={styles.input}
           placeholder="0.00"
-          keyboardType="numeric"
-          value={gasto.monto.toString()}
+          keyboardType="decimal-pad" // Mejor opción para decimales
+          value={gasto.monto}
           onChangeText={(text) => {
-            const numericValue = parseFloat(text) || 0;
-            setGasto({ ...gasto, monto: numericValue });
+            // Validar formato decimal opcionalmente
+            const decimalRegex = /^(\d+)?(\.\d*)?$/;
+            if (text === '' || decimalRegex.test(text)) {
+              setGasto({ ...gasto, monto: text });
+            }
           }}
         />
       </View>

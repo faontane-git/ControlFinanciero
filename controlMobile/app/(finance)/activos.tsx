@@ -76,9 +76,7 @@ export default function ActivosScreen() {
           ))}
         </ScrollView>
       </View>
-
-      {/* Tab bar al fondo */}
-      <CustomTabBar activeRoute="activos" />
+      
     </View>
   );
 }

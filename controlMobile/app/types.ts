@@ -2,7 +2,7 @@
 export type Movimiento = {
   id: string;
   tipo: 'Ingreso' | 'Gasto';
-  monto: number;
+  monto: string;
   descripcion: string;
   fecha?: Date; // Nueva propiedad para manejar fechas
   categoria?: string; // Nueva propiedad para categorizar

@@ -15,7 +15,7 @@ export default function AgregarIngreso() {
   const [movimientoId, setMovimientoId] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [ingreso, setIngreso] = useState<Omit<Movimiento, 'id' | 'tipo'>>({
-    monto: 0,
+    monto: '',
     descripcion: '',
     fecha: new Date(),
     categoria: ''
@@ -65,37 +65,37 @@ export default function AgregarIngreso() {
   }, [params.movimiento]);
 
   const handleGuardarIngreso = async () => {
-    if (!ingreso.descripcion || ingreso.monto <= 0 || !ingreso.categoria) {
+    const montoNumerico = parseFloat(ingreso.monto);
+
+    if (!ingreso.descripcion || isNaN(montoNumerico) || montoNumerico <= 0 || !ingreso.categoria) {
       Alert.alert('Error', 'Por favor completa todos los campos correctamente');
       return;
     }
 
     try {
-      if (isEditing) {
-        // Actualizar documento existente
-        await updateDoc(doc(db, 'movimientos', movimientoId), {
-          ...ingreso,
-          fecha: Timestamp.fromDate(ingreso.fecha || new Date())
-        });
+      const dataToSave = {
+        ...ingreso,
+        monto: montoNumerico,
+        fecha: Timestamp.fromDate(ingreso.fecha || new Date()),
+      };
 
+      if (isEditing) {
+        await updateDoc(doc(db, 'movimientos', movimientoId), dataToSave);
         Alert.alert('Éxito', 'Ingreso actualizado correctamente', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       } else {
-        // Crear nuevo documento
         await addDoc(collection(db, 'movimientos'), {
-          ...ingreso,
-          tipo: 'Ingreso',
-          fecha: Timestamp.fromDate(ingreso.fecha || new Date())
+          ...dataToSave,
+          tipo: 'Gasto'
         });
-
-        Alert.alert('Éxito', 'Ingreso agregado correctamente', [
+        Alert.alert('Éxito', 'Gasto agregado correctamente', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       }
     } catch (error) {
-      console.error('Error al guardar ingreso:', error);
-      Alert.alert('Error', 'Hubo un problema al guardar el ingreso');
+      console.error('Error al guardar gasto:', error);
+      Alert.alert('Error', 'Hubo un problema al guardar el gasto');
     }
   };
 
@@ -121,11 +121,14 @@ export default function AgregarIngreso() {
         <TextInput
           style={styles.input}
           placeholder="0.00"
-          keyboardType="numeric"
-          value={ingreso.monto > 0 ? ingreso.monto.toString() : ''}
+          keyboardType="decimal-pad" // Mejor opción para decimales
+          value={ingreso.monto}
           onChangeText={(text) => {
-            const numericValue = parseFloat(text) || 0;
-            setIngreso({ ...ingreso, monto: numericValue });
+            // Validar formato decimal opcionalmente
+            const decimalRegex = /^(\d+)?(\.\d*)?$/;
+            if (text === '' || decimalRegex.test(text)) {
+              setIngreso({ ...ingreso, monto: text });
+            }
           }}
         />
       </View>
