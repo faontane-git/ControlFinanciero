@@ -234,6 +234,7 @@ export const styles = StyleSheet.create({
         height: 50,
         width: '100%',
         backgroundColor: '#fff',
+        color: '#000'
     },
     scrollContent: {
         paddingBottom: 30, // Espacio extra al final

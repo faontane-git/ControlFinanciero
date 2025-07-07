@@ -76,11 +76,11 @@ export default function HomeScreen() {
   const calcularResumen = useCallback((movs: Movimiento[]) => {
     const totalIngresos = movs
       .filter((m) => m.tipo === 'Ingreso')
-      .reduce((acc, curr) => acc + curr.monto, 0);
+      .reduce((acc, curr) => acc + Number(curr.monto), 0);
 
     const totalGastos = movs
       .filter((m) => m.tipo === 'Gasto')
-      .reduce((acc, curr) => acc + curr.monto, 0);
+      .reduce((acc, curr) => acc + Number(curr.monto), 0);
 
     return {
       ingresos: totalIngresos,
@@ -195,7 +195,7 @@ export default function HomeScreen() {
       </View>
 
       <Text style={styles.movMonto}>
-        {item.tipo === 'Ingreso' ? '+' : '-'}{formatCurrency(item.monto)}
+        {item.tipo === 'Ingreso' ? '+' : '-'}{formatCurrency(Number(item.monto))}
       </Text>
     </TouchableOpacity>
   );
@@ -342,6 +342,8 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
     backgroundColor: '#fff',
+    paddingBottom: 51,
+    color: '#000'  
   },
   card: {
     backgroundColor: '#fff',

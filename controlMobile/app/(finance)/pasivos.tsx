@@ -1,9 +1,19 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, SafeAreaView } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import CustomTabBar from '../CustomTabBar';
 import { styles } from '../styles';
+import Header from '../Header';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function PasivosScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+   }, []);
   // Datos de créditos
   const creditos = [
     {
@@ -63,95 +73,117 @@ export default function PasivosScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <Text style={localStyles.screenTitle}>Mis Pasivos</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
 
-      {/* Botones debajo del título */}
-      <View style={localStyles.buttonsContainer}>
-        <TouchableOpacity style={localStyles.addButton} onPress={() => console.log('Añadir crédito')}>
-          <Ionicons name="add-circle-outline" size={18} color="#1E88E5" />
-          <Text style={localStyles.addButtonText}>Añadir Crédito</Text>
-        </TouchableOpacity>
+        <Header
+          onBack={() => router.back()}
+          logo={require('../../assets/images/logo.png')}
+        />
 
-        <TouchableOpacity style={localStyles.addButton} onPress={() => console.log('Añadir gasto')}>
-          <Ionicons name="add-circle-outline" size={18} color="#1E88E5" />
-          <Text style={localStyles.addButtonText}>Añadir Gasto</Text>
-        </TouchableOpacity>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{
+            paddingBottom: 80 + insets.bottom,
+            paddingTop: 10
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#2f95dc']}
+              tintColor="#2f95dc"
+            />
+          }
+        >
+          <Text style={localStyles.screenTitle}>Mis Pasivos</Text>
+
+          {/* Botones debajo del título */}
+          <View style={localStyles.buttonsContainer}>
+            <TouchableOpacity style={localStyles.addButton} onPress={() => console.log('Añadir crédito')}>
+              <Ionicons name="add-circle-outline" size={18} color="#1E88E5" />
+              <Text style={localStyles.addButtonText}>Añadir Crédito</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={localStyles.addButton} onPress={() => console.log('Añadir gasto')}>
+              <Ionicons name="add-circle-outline" size={18} color="#1E88E5" />
+              <Text style={localStyles.addButtonText}>Añadir Gasto</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Sección de Créditos */}
+          <Text style={localStyles.sectionTitle}>Créditos</Text>
+          {creditos.map((credito) => (
+            <View key={`credito-${credito.id}`} style={localStyles.itemCard}>
+              <View style={localStyles.itemHeader}>
+                <Ionicons
+                  name={credito.icono as any}
+                  size={24}
+                  color="#FF5252"
+                  style={localStyles.itemIcon}
+                />
+                <View style={localStyles.itemTextContainer}>
+                  <Text style={localStyles.itemName}>{credito.tipo}</Text>
+                  <Text style={localStyles.itemDetail}>{credito.entidad}</Text>
+                </View>
+              </View>
+
+              <View style={localStyles.itemData}>
+                <View style={localStyles.dataColumn}>
+                  <Text style={localStyles.dataLabel}>Monto total</Text>
+                  <Text style={localStyles.dataValue}>{credito.monto}</Text>
+                </View>
+                <View style={localStyles.dataColumn}>
+                  <Text style={localStyles.dataLabel}>Cuota mensual</Text>
+                  <Text style={localStyles.dataValue}>{credito.cuotaMensual}</Text>
+                </View>
+                <View style={localStyles.dataColumn}>
+                  <Text style={localStyles.dataLabel}>Finaliza</Text>
+                  <Text style={localStyles.dataValue}>{credito.fechaFinalizacion}</Text>
+                </View>
+              </View>
+            </View>
+          ))}
+
+          {/* Sección de Gastos Mensuales */}
+          <Text style={localStyles.sectionTitle}>Gastos Mensuales</Text>
+          {gastosMensuales.map((gasto) => (
+            <View key={`gasto-${gasto.id}`} style={localStyles.itemCard}>
+              <View style={localStyles.itemHeader}>
+                <Ionicons
+                  name={gasto.icono as any}
+                  size={24}
+                  color="#4CAF50"
+                  style={localStyles.itemIcon}
+                />
+                <View style={localStyles.itemTextContainer}>
+                  <Text style={localStyles.itemName}>{gasto.servicio}</Text>
+                  <Text style={localStyles.itemDetail}>{gasto.proveedor}</Text>
+                </View>
+                <Text style={localStyles.itemAmount}>{gasto.monto}</Text>
+              </View>
+
+              <View style={localStyles.itemFooter}>
+                <Text style={localStyles.footerText}>Pago: {gasto.fechaPago}</Text>
+                <Ionicons name="calendar-outline" size={16} color="#666" />
+              </View>
+            </View>
+          ))}
+
+        </ScrollView>
       </View>
+    </SafeAreaView >
 
-      <ScrollView style={localStyles.scrollContainer}>
-        {/* Sección de Créditos */}
-        <Text style={localStyles.sectionTitle}>Créditos</Text>
-        {creditos.map((credito) => (
-          <View key={`credito-${credito.id}`} style={localStyles.itemCard}>
-            <View style={localStyles.itemHeader}>
-              <Ionicons
-                name={credito.icono as any}
-                size={24}
-                color="#FF5252"
-                style={localStyles.itemIcon}
-              />
-              <View style={localStyles.itemTextContainer}>
-                <Text style={localStyles.itemName}>{credito.tipo}</Text>
-                <Text style={localStyles.itemDetail}>{credito.entidad}</Text>
-              </View>
-            </View>
-
-            <View style={localStyles.itemData}>
-              <View style={localStyles.dataColumn}>
-                <Text style={localStyles.dataLabel}>Monto total</Text>
-                <Text style={localStyles.dataValue}>{credito.monto}</Text>
-              </View>
-              <View style={localStyles.dataColumn}>
-                <Text style={localStyles.dataLabel}>Cuota mensual</Text>
-                <Text style={localStyles.dataValue}>{credito.cuotaMensual}</Text>
-              </View>
-              <View style={localStyles.dataColumn}>
-                <Text style={localStyles.dataLabel}>Finaliza</Text>
-                <Text style={localStyles.dataValue}>{credito.fechaFinalizacion}</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-
-        {/* Sección de Gastos Mensuales */}
-        <Text style={localStyles.sectionTitle}>Gastos Mensuales</Text>
-        {gastosMensuales.map((gasto) => (
-          <View key={`gasto-${gasto.id}`} style={localStyles.itemCard}>
-            <View style={localStyles.itemHeader}>
-              <Ionicons
-                name={gasto.icono as any}
-                size={24}
-                color="#4CAF50"
-                style={localStyles.itemIcon}
-              />
-              <View style={localStyles.itemTextContainer}>
-                <Text style={localStyles.itemName}>{gasto.servicio}</Text>
-                <Text style={localStyles.itemDetail}>{gasto.proveedor}</Text>
-              </View>
-              <Text style={localStyles.itemAmount}>{gasto.monto}</Text>
-            </View>
-
-            <View style={localStyles.itemFooter}>
-              <Text style={localStyles.footerText}>Pago: {gasto.fechaPago}</Text>
-              <Ionicons name="calendar-outline" size={16} color="#666" />
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-
-    </View>
   );
 }
 
 // Estilos específicos para esta pantalla
 const localStyles = StyleSheet.create({
   screenTitle: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginHorizontal: 20,
-    marginTop: 20,
-    color: '#333',
+    marginHorizontal: 15,
+    color: '#2c3e50',
   },
   buttonsContainer: {
     flexDirection: 'row',
