@@ -13,7 +13,7 @@ export default function PasivosScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-   }, []);
+  }, []);
   // Datos de créditos
   const creditos = [
     {
@@ -82,7 +82,7 @@ export default function PasivosScreen() {
         />
 
         <ScrollView
-          style={styles.container}
+          style={localStyles.container}
           contentContainerStyle={{
             paddingBottom: 80 + insets.bottom,
             paddingTop: 10
@@ -100,7 +100,10 @@ export default function PasivosScreen() {
 
           {/* Botones debajo del título */}
           <View style={localStyles.buttonsContainer}>
-            <TouchableOpacity style={localStyles.addButton} onPress={() => console.log('Añadir crédito')}>
+            <TouchableOpacity
+              style={localStyles.addButton}
+              onPress={() => router.navigate('/aCredito')}
+            >
               <Ionicons name="add-circle-outline" size={18} color="#1E88E5" />
               <Text style={localStyles.addButtonText}>Añadir Crédito</Text>
             </TouchableOpacity>
@@ -179,6 +182,10 @@ export default function PasivosScreen() {
 
 // Estilos específicos para esta pantalla
 const localStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
   screenTitle: {
     fontSize: 16,
     fontWeight: 'bold',

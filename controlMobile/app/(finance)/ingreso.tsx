@@ -87,14 +87,14 @@ export default function AgregarIngreso() {
       } else {
         await addDoc(collection(db, 'movimientos'), {
           ...dataToSave,
-          tipo: 'Gasto'
+          tipo: 'Ingreso'
         });
-        Alert.alert('Éxito', 'Gasto agregado correctamente', [
+        Alert.alert('Éxito', 'Ingreso agregado correctamente', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       }
     } catch (error) {
-      console.error('Error al guardar gasto:', error);
+      console.error('Error al guardar ingreso:', error);
       Alert.alert('Error', 'Hubo un problema al guardar el gasto');
     }
   };
