@@ -29,7 +29,8 @@ export default function HomeScreen() {
   const [resumen, setResumen] = useState({
     ingresos: 0,
     gastos: 0,
-    balance: 0
+    balance: 0,
+    porcentajeGasto: 0
   });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -73,21 +74,27 @@ export default function HomeScreen() {
     cargarMovimientos().finally(() => setRefreshing(false));
   }, []);
 
-  const calcularResumen = useCallback((movs: Movimiento[]) => {
-    const totalIngresos = movs
-      .filter((m) => m.tipo === 'Ingreso')
-      .reduce((acc, curr) => acc + Number(curr.monto), 0);
+ const calcularResumen = useCallback((movs: Movimiento[]) => {
+  const totalIngresos = movs
+    .filter((m) => m.tipo === 'Ingreso')
+    .reduce((acc, curr) => acc + Number(curr.monto), 0);
 
-    const totalGastos = movs
-      .filter((m) => m.tipo === 'Gasto')
-      .reduce((acc, curr) => acc + Number(curr.monto), 0);
+  const totalGastos = movs
+    .filter((m) => m.tipo === 'Gasto')
+    .reduce((acc, curr) => acc + Number(curr.monto), 0);
 
-    return {
-      ingresos: totalIngresos,
-      gastos: totalGastos,
-      balance: totalIngresos - totalGastos
-    };
-  }, []);
+  const porcentajeGasto = totalIngresos > 0
+    ? (totalGastos / totalIngresos) * 100
+    : 0;
+
+  return {
+    ingresos: totalIngresos,
+    gastos: totalGastos,
+    balance: totalIngresos - totalGastos,
+    porcentajeGasto
+  };
+}, []);
+
 
   const generarAnos = () => {
     const anos = [];
@@ -274,7 +281,18 @@ export default function HomeScreen() {
                 {formatCurrency(resumen.balance)}
               </Text>
             </View>
+            <View style={styles.resumenRow}>
+              <Text style={styles.label}>% de Gasto:</Text>
+              <Text style={{
+                fontSize: 16,
+                color: resumen.porcentajeGasto > 100 ? '#e74c3c' : '#f39c12',
+                fontWeight: 'bold',
+              }}>
+                {resumen.porcentajeGasto.toFixed(1)}%
+              </Text>
+            </View>
           </View>
+
 
           {/* Botones */}
           <View style={styles.buttonsContainer}>
@@ -343,7 +361,7 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: '#fff',
     paddingBottom: 51,
-    color: '#000'  
+    color: '#000'
   },
   card: {
     backgroundColor: '#fff',

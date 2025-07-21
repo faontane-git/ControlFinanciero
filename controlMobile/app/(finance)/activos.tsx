@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import CustomTabBar from '../CustomTabBar';
+import Header from '../Header';
+import { useRouter } from 'expo-router';
 
 export default function ActivosScreen() {
+  const router = useRouter();
   const activos = [
     {
       id: 1,
@@ -40,53 +42,59 @@ export default function ActivosScreen() {
   ];
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <Text style={styles.screenTitle}>Activos</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <View style={styles.container}>
+          <Header
+            onBack={() => router.back()}
+            logo={require('../../assets/images/logo.png')}
+          />
 
-        {/* Botón debajo del título */}
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log('Añadir activo')}>
-          <Ionicons name="add-circle-outline" size={20} color="#1E88E5" />
-          <Text style={styles.addButtonText}>Añadir Activo</Text>
-        </TouchableOpacity>
+          <Text style={styles.screenTitle}>Activos</Text>
 
-        <ScrollView style={styles.activosContainer} contentContainerStyle={{ paddingBottom: 120 }}>
-          {activos.map((activo) => (
-            <View key={activo.id} style={styles.activoCard}>
-              <View style={styles.activoHeader}>
-                <Ionicons
-                  name={activo.icono as any}
-                  size={22}
-                  color="#1E88E5"
-                  style={styles.activoIcon}
-                />
-                <View>
-                  <Text style={styles.activoTipo}>{activo.tipo}</Text>
-                  <Text style={styles.activoNombre}>{activo.nombre}</Text>
+          {/* Botón debajo del título */}
+          <TouchableOpacity style={styles.addButton} onPress={() => router.push('/activo-nuevo')}>
+            <Ionicons name="add-circle-outline" size={20} color="#1E88E5" />
+            <Text style={styles.addButtonText}>Añadir Activo</Text>
+          </TouchableOpacity>
+
+          <ScrollView style={styles.activosContainer} contentContainerStyle={{ paddingBottom: 120 }}>
+            {activos.map((activo) => (
+              <View key={activo.id} style={styles.activoCard}>
+                <View style={styles.activoHeader}>
+                  <Ionicons
+                    name={activo.icono as any}
+                    size={22}
+                    color="#1E88E5"
+                    style={styles.activoIcon}
+                  />
+                  <View>
+                    <Text style={styles.activoTipo}>{activo.tipo}</Text>
+                    <Text style={styles.activoNombre}>{activo.nombre}</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.activoSaldo}>{activo.saldo}</Text>
+
+                <View style={styles.activoDetalles}>
+                  <Text style={styles.activoDetalleText}>{activo.detalles}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#888" />
                 </View>
               </View>
+            ))}
+          </ScrollView>
+        </View>
 
-              <Text style={styles.activoSaldo}>{activo.saldo}</Text>
-
-              <View style={styles.activoDetalles}>
-                <Text style={styles.activoDetalleText}>{activo.detalles}</Text>
-                <Ionicons name="chevron-forward" size={16} color="#888" />
-              </View>
-            </View>
-          ))}
-        </ScrollView>
       </View>
-      
-    </View>
+    </SafeAreaView >
+
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 40,
-    paddingHorizontal: 15,
-    backgroundColor: '#f4f6f8',
+    backgroundColor: '#f8f9fa',
   },
   screenTitle: {
     fontSize: 20,
